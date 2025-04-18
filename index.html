@@ -41,6 +41,45 @@
       { lat: 3.8982, lng: -76.3053, label: "Mini Azul", color: "green" }
     ];
 
+function locateUser() {
+  map.locate({ setView: true, maxZoom: 15 });
+
+  map.on('locationfound', function(e) {
+    L.marker(e.latlng).addTo(map).bindPopup("You are here").openPopup();
+
+    const name = prompt("Enter your name:");
+
+    fetch("https://logxie.app.n8n.cloud/webhook-test/submit-location", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        name: name || "Anonymous",
+        latitude: e.latitude,
+        longitude: e.longitude,
+        timestamp: new Date().toISOString()
+      })
+    })
+    .then(res => {
+      if (res.ok) {
+        alert("Location sent successfully!");
+      } else {
+        alert("Failed to send location.");
+      }
+    })
+    .catch(err => {
+      console.error("Fetch error:", err);
+      alert("An error occurred sending your location.");
+    });
+  });
+
+  map.on('locationerror', function() {
+    alert("Location access denied or unavailable.");
+  });
+}
+
+
     function createIcon(color) {
       return new L.Icon({
         iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-${color}.png`,
